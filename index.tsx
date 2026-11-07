@@ -10,7 +10,7 @@ import { FormSwitch } from "@components/FormSwitch";
 import definePlugin from "@utils/types";
 import type { Channel, RenderModalProps } from "@vencord/discord-types";
 import { ChannelType } from "@vencord/discord-types/enums";
-import { ChannelStore, Menu, Modal, openModal, PermissionsBits, PermissionStore, RestAPI, showToast, TextInput, useState } from "@webpack/common";
+import { ChannelStore, Constants, Menu, Modal, openModal, PermissionsBits, PermissionStore, RestAPI, showToast, TextInput, useState } from "@webpack/common";
 
 const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: RenderModalProps & { category: Channel; }) => {
     const [name, setName] = useState(category.name);
@@ -27,7 +27,7 @@ const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: Rende
             if (!source || source.type !== ChannelType.GUILD_CATEGORY)
                 throw new Error("The original category no longer exists.");
             await RestAPI.post({
-                url: `/guilds/${source.guild_id}/channels`,
+                url: Constants.Endpoints.GUILD_CHANNELS(source.guild_id),
                 body: {
                     name: name.trim(),
                     type: ChannelType.GUILD_CATEGORY,
