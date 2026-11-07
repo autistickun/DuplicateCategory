@@ -1,6 +1,6 @@
 # Duplicate Category for Vencord
 
-Adds **Duplicate Category** below **Edit Category** in a server category's context menu. The dialog lets you change the category name before creating an empty category with the original permission overwrites. Requires Manage Channels.
+Adds **Duplicate Category** below **Edit Category** in a server category's context menu. The dialog lets you change the category name and choose whether to copy the original permission overwrites. Copy Permissions is enabled by default; turn it off to use the server's default permissions. Requires Manage Channels.
 
 ## Install as a user plugin
 
