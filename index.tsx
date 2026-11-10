@@ -6,7 +6,8 @@
 
 import { findGroupChildrenByChildId, NavContextMenuPatchCallback } from "@api/ContextMenu";
 import ErrorBoundary from "@components/ErrorBoundary";
-import { FormSwitch } from "@components/FormSwitch";
+import { CopyIcon } from "@components/Icons";
+import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 import type { Channel, RenderModalProps } from "@vencord/discord-types";
 import { ChannelType } from "@vencord/discord-types/enums";
@@ -31,7 +32,7 @@ const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: Rende
                 body: {
                     name: name.trim(),
                     type: ChannelType.GUILD_CATEGORY,
-                    permission_overwrites: copyPermissions ? Object.values(source.permissionOverwrites).map(overwrite => ({
+                    permission_overwrites: copyPermissions ? Object.values(source.permissionOverwrites ?? {}).map(overwrite => ({
                         id: overwrite.id,
                         type: overwrite.type,
                         allow: String(overwrite.allow),
@@ -42,6 +43,7 @@ const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: Rende
             props.onClose();
             showToast({ text: "Category created.", variant: "success" });
         } catch (error) {
+            console.error("[DuplicateCategory] Failed to create category", error);
             setError(error instanceof Error ? error.message : "Could not create the category. Check your permissions and try again.");
             setSaving(false);
         }
@@ -50,8 +52,8 @@ const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: Rende
     return (
         <Modal
             {...props}
-            title="Duplicate Category"
-            size="sm"
+            title="Create Category"
+            size="md"
             notice={error ? { message: error, type: "critical" } : undefined}
             actions={[
                 { text: "Cancel", variant: "secondary", onClick: props.onClose, disabled: saving },
@@ -59,7 +61,20 @@ const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: Rende
             ]}
         >
             <form onSubmit={event => { event.preventDefault(); void createCategory(); }}>
-                <label style={{ display: "block", fontWeight: 600, marginBottom: 8 }} htmlFor="vc-duplicate-category-name">Category Name</label>
+                <label
+                    htmlFor="vc-duplicate-category-name"
+                    style={{
+                        display: "block",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                        fontWeight: 600,
+                        color: "var(--header-secondary, #b5bac1)",
+                        marginBottom: 8,
+                        fontFamily: "var(--font-primary, 'gg sans', sans-serif)"
+                    }}
+                >
+                    Category Name
+                </label>
                 <TextInput
                     id="vc-duplicate-category-name"
                     autoFocus
@@ -71,14 +86,96 @@ const DuplicateCategoryModal = ErrorBoundary.wrap(({ category, ...props }: Rende
                 />
             </form>
             <div style={{ marginTop: 16 }}>
-                <FormSwitch
-                    title={<><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 4, verticalAlign: "-2px" }}><path d="M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2ZM9 6a3 3 0 0 1 6 0v2H9Zm9 14H6V10h12Z" /></svg>Copy Permissions</>}
-                    description="Copy the original category's permissions to the new category. Turn this off to use the server's default permissions."
-                    value={copyPermissions}
-                    onChange={setCopyPermissions}
-                    disabled={saving}
-                    hideBorder
-                />
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        height: 24,
+                        marginBottom: 8
+                    }}
+                >
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 8,
+                            fontSize: "16px",
+                            lineHeight: "24px",
+                            height: 24,
+                            fontWeight: 600,
+                            color: "var(--header-primary, #f2f3f5)",
+                            cursor: saving ? "default" : "pointer",
+                            userSelect: "none",
+                            outline: "none"
+                        }}
+                        onClick={() => {
+                            if (!saving) setCopyPermissions(prev => !prev);
+                        }}
+                        onKeyDown={e => {
+                            if ((e.key === "Enter" || e.key === " ") && !saving) {
+                                e.preventDefault();
+                                setCopyPermissions(prev => !prev);
+                            }
+                        }}
+                    >
+                        <CopyIcon width={16} height={16} style={{ color: "currentColor", flexShrink: 0 }} />
+                        <span>Copy Permissions</span>
+                    </div>
+                    <div
+                        role="switch"
+                        aria-checked={copyPermissions}
+                        tabIndex={0}
+                        style={{
+                            width: 40,
+                            minWidth: 40,
+                            height: 24,
+                            borderRadius: 12,
+                            backgroundColor: copyPermissions ? "var(--brand-500, #5865f2)" : "var(--bg-mod-strong, #4e5058)",
+                            position: "relative",
+                            cursor: saving ? "default" : "pointer",
+                            transition: "background-color 0.15s ease-in-out",
+                            flexShrink: 0,
+                            outline: "none"
+                        }}
+                        onClick={() => {
+                            if (!saving) setCopyPermissions(prev => !prev);
+                        }}
+                        onKeyDown={e => {
+                            if ((e.key === "Enter" || e.key === " ") && !saving) {
+                                e.preventDefault();
+                                setCopyPermissions(prev => !prev);
+                            }
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 18,
+                                height: 18,
+                                borderRadius: "50%",
+                                backgroundColor: "#ffffff",
+                                position: "absolute",
+                                top: 3,
+                                left: 3,
+                                transform: copyPermissions ? "translateX(16px)" : "translateX(0px)",
+                                transition: "transform 0.15s ease-in-out",
+                                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.2)"
+                            }}
+                        />
+                    </div>
+                </div>
+                <div
+                    style={{
+                        fontSize: "14px",
+                        lineHeight: "20px",
+                        fontWeight: 400,
+                        color: "var(--text-muted, #949ba4)"
+                    }}
+                >
+                    Copy the original category's permissions to the new category. Turn this off to use the server's default permissions.
+                </div>
             </div>
         </Modal>
     );
@@ -109,10 +206,12 @@ export default definePlugin({
     name: "DuplicateCategory",
     description: "Adds an option to duplicate a category with the same permissions.",
     tags: ["Utility"],
-    authors: [{ name: "wreckware", id: 892246841016590386n }],
+    authors: [{
+        name: "lethied",
+        id: 892246841016590386n
+    }],
     contextMenus: {
         "channel-context": patchCategoryMenu,
         "channel-category-context": patchCategoryMenu
     }
 });
-
